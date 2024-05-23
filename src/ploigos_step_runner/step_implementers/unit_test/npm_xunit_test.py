@@ -15,6 +15,7 @@ Configuration Key            | Required? | Default    | Description
 `test-reports-dir`           | Yes       |            | Location of test result files
 `npm-envs`                   | No        |            | Additional environment variable key value pairs
 
+
 Result Artifacts
 ----------------
 Results artifacts output by this step.
