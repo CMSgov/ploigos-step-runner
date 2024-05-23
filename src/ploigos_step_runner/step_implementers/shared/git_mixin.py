@@ -16,7 +16,7 @@ Configuration Key    | Required? | Default              | Description
 ---------------------|-----------|----------------------|-----------
 `git-repo-root`      | Yes       | `./`                 | Directory path to the Git repository to perform git operations on.
 `repo-root`          | No        |                      | Alias for `git-repo-root`.
-`git-url`            | No        |                      | Git repo root configured origin url \
+`git-url`            | No        | Git repo root configured origin url \
                                                         | URL to Git repository to perform Git operations on. \
                                                           If not given will use Git remote url set in given Git repository root.
 `url`                | No        |                      | Alias for `git-url`.
@@ -30,11 +30,9 @@ Configuration Key    | Required? | Default              | Description
                                                           Will be ignored if Git repository url is using SSH.
 `git-user-name`      | Maybe     | `Ploigos Robot`      | User name to use when creating Git commits.
 `git-user-email`     | Maybe     | `ploigos-robot`      | User email to use when creating Git commits.
-`git-commit-message` | Maybe     |                      |`Automated commit of changes during release engineering generate-metadata step` \
+`git-commit-message` | Maybe     | `Automated commit of changes during release engineering generate-metadata step` \
                                                         | Git commit message to use when/if creating an automated git commit.
 """# pylint: disable=line-too-long
-
-import sh
 
 from datetime import timezone
 from urllib.parse import urlsplit, urlunsplit

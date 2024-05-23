@@ -10,25 +10,21 @@ Could come from:
 
 Configuration Key | Required? | Default  | Description
 ------------------|-----------|----------|-----------
-`version`           | No        | `latest` | Semantic version to use as Git tag.
-`git-repo-root`     | Yes       | `./`     | Directory path to the Git repository to perform git operations on.
-`repo-root`         | No        |          | Alias for `git-repo-root`.
-`git-url`           | No        |          | Git repo root configured origin url \
-                                             URL to Git repository to perform Git operations on. \
-                                             If not given will use Git remote url set in given Git repository root.
-`url`               | No        |          | Alias for `git-url`.
-`git-username`      | No        |          | Git username to use when connecting with Git remote. \
-                                             Will override username in given git url. \
-                                             Will override username in Git url in Git repository root remote url. \
-                                             Will be ignored if Git repository url is using SSH.
-`git-password`      | No        |          | Git password to use when connecting with Git remote. \
-                                             Will override password in given git url. \
-                                             Will override password in Git url in Git repository root remote url. \
-                                             Will be ignored if Git repository url is using SSH.
-`archive-ref-root`  | No        |          | Reference path to use as the root for an addional archive tag. eg \
-                                             refs/archive/
-`force-push-ref`    | No        | false    | Force push git archive references.
-`archive-count`     | No        |          | Number of tags to keep before archiving old tags.
+`version`         | No        | `latest` | Semantic version to use as Git tag.
+`git-repo-root`   | Yes       | `./`     | Directory path to the Git repository to perform git operations on.
+`repo-root`       | No        |          | Alias for `git-repo-root`.
+`git-url`         | No        | Git repo root configured origin url \
+                                         | URL to Git repository to perform Git operations on. \
+                                           If not given will use Git remote url set in given Git repository root.
+`url`             | No        |          | Alias for `git-url`.
+`git-username`    | No        |          | Git username to use when connecting with Git remote. \
+                                           Will override username in given git url. \
+                                           Will override username in Git url in Git repository root remote url. \
+                                           Will be ignored if Git repository url is using SSH.
+`git-password`    | No        |          | Git password to use when connecting with Git remote. \
+                                           Will override password in given git url. \
+                                           Will override password in Git url in Git repository root remote url. \
+                                           Will be ignored if Git repository url is using SSH.
 
 Result Artifacts
 ----------------
@@ -37,21 +33,16 @@ Results artifacts output by this step.
 Result Artifact Key | Description
 --------------------|------------
 `tag`               | This is the value that was used to tag the source.
-`ref`               | This is the full reference path if a reference is created
 """# pylint: disable=line-too-long
-
-import re
 
 from ploigos_step_runner.step_implementer import StepImplementer
 from ploigos_step_runner.results import StepResult
 from ploigos_step_runner.exceptions import StepRunnerException
 from ploigos_step_runner.step_implementers.shared import GitMixin
-from ploigos_step_runner.utils.git import git_update_ref_and_push, git_orderd_tag_refs_with_created, archive_tags
 
 DEFAULT_CONFIG = {
     'version': 'latest',
     'git-repo-root': './',
-    'force-push-ref': False,
 }
 """
 Note
@@ -114,8 +105,6 @@ class Git(StepImplementer, GitMixin):
         """
         step_result = StepResult.from_step_implementer(self)
 
-        git_repo_root = self.get_value('git-repo-root')
-
         # get the tag
         tag = self.__get_tag_value()
         step_result.add_artifact(
@@ -131,47 +120,6 @@ class Git(StepImplementer, GitMixin):
             step_result.success = False
             step_result.message = f"Error tagging and pushing tags: {error}"
 
-        # create ref and push ref
-        archive_ref_root = self.get_value('archive-ref-root')
-        force_push_ref = self.get_value('force-push-ref')
-        archive_count = self.get_value('archive-count')
-
-        if archive_ref_root:
-            try:
-                if not re.search(r'^refs/', archive_ref_root):
-                    raise StepRunnerException("Archive ref root must begin with refs/")
-
-                if archive_count:
-                    print("Archive old tags")
-                    ordered_tags = git_orderd_tag_refs_with_created(
-                        git_repo_root,
-                        self.git_url,
-                    )
-
-                    archive_tags(
-                        git_repo_root,
-                        archive_ref_root,
-                        ordered_tags,
-                        archive_count,
-                        self.git_url
-                    )
-
-                print("Create ref and push")
-                git_update_ref_and_push(
-                    git_repo_root,
-                    archive_ref_root,
-                    tag,
-                    'refs/tags/' + tag,
-                    self.git_url,
-                    force_push_ref
-                )
-                step_result.add_artifact(
-                    name='ref',
-                    value=archive_ref_root + tag,
-                )
-            except StepRunnerException as error:
-                step_result.success = False
-                step_result.message = f"Error creating ref and pushing ref: {error}"
         return step_result
 
     def __get_tag_value(self):
