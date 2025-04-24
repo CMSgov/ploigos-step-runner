@@ -62,7 +62,7 @@ class GradleIntegrationTest(GradleGeneric):
             config=config,
             environment=environment,
         )
-    
+
     @staticmethod
     def step_implementer_config_defaults():
         """
@@ -73,7 +73,7 @@ class GradleIntegrationTest(GradleGeneric):
         """
 
         return {**GradleGeneric.step_implementer_config_defaults(), **DEFAULT_CONFIG}
-    
+
     @staticmethod
     def _required_config_or_result_keys():
         """
@@ -84,7 +84,7 @@ class GradleIntegrationTest(GradleGeneric):
         """
 
         return REQUIRED_CONFIG_OR_PREVIOUS_STEP_RESULT_ARTIFACT_KEYS
-    
+
     def _run_step(self):
         """
         Run the Gradle UAT step.
@@ -100,7 +100,7 @@ class GradleIntegrationTest(GradleGeneric):
 
 
         try:
-            
+
             self._run_gradle_step(
                 gradle_output_file_path=gradle_output_file_path,
             )

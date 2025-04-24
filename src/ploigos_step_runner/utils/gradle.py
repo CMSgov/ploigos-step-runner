@@ -85,6 +85,7 @@ class GradleGroovyParser:
         elif len(tokens) > 1:
 
             raise GradleGroovyParserException(self.file_name, "More than one version found. " + str(tokens) )
+        return version
 
 
 def run_gradle( #pylint: disable=too-many-arguments, too-many-locals
