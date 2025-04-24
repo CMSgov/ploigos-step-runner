@@ -148,12 +148,12 @@ class TestStepImplementerGradleGenerateMetadata(BaseStepImplementerTestCase):
 
             self.assertEqual(result, expected_step_result)
         
-    @patch('ploigos_step_runner.step_implementers.generate_metadata.gradle.run_gradle')
+    # @patch('ploigos_step_runner.step_implementers.generate_metadata.gradle.run_gradle')
     def test_run_step_fail_missing_version_in_build_file(
             self,
-            mock_run_gradle
+            # mock_run_gradle
     ):
-        mock_run_gradle.side_effect = StepRunnerException("no version found")
+        # mock_run_gradle.side_effect = StepRunnerException("no version found")
 
         with TempDirectory() as temp_dir:
             parent_work_dir_path = os.path.join(temp_dir.path, 'working')
@@ -164,7 +164,7 @@ class TestStepImplementerGradleGenerateMetadata(BaseStepImplementerTestCase):
                            https://docs.gradle.org/8.3/userguide/building_java_projects.html in the Gradle 
                            documentation.\n */\n\nplugins {\n    // Apply the application plugin to add 
                            support for building a CLI application in Java.\n    id \'application\'\n    
-                           id \"org.springframework.boot\" version \"2.7.16\"\n\n}\n\nrepositories {\n    
+                           id \"org.springframework.boot\"\n\n}\n\nrepositories {\n    
                            // Use Maven Central for resolving dependencies.\n    mavenCentral()\n}\n\ndependencies 
                            {\n    // Use JUnit test framework.\n    testImplementation \'junit:junit:4.13.2\'\n\n    
                            // This dependency is used by the application.\n    implementation 
