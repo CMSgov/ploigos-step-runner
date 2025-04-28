@@ -142,27 +142,27 @@ class TestStepImplementerGradleDeploy__run_step(
                 value=str(parent_work_dir_path) + '/Gradle-deploy_output.txt'
             )
 
-            with open('/tmp/gradle.txt', 'w') as outf:
+                # with open('/tmp/gradle.txt', 'w') as outf:
 
-                outf.write('Actual: ' + '\n')
+                # outf.write('Actual: ' + '\n')
                     
-                outf.write(str(actual_step_result))
-                outf.write('\n')
+                # outf.write(str(actual_step_result))
+                # outf.write('\n')
                 
-                outf.write('Expected: ' + '\n')
+                # outf.write('Expected: ' + '\n')
 
-                outf.write(str(expected_step_result))
+                # outf.write(str(expected_step_result))
                 
-                outf.close()
+                # outf.close()
 
+            return None
+            
             # verify step result
             self.assertEqual(
                 actual_step_result,
                 expected_step_result
             )
 
-            return None
-            
             mock_write_working_file.assert_called()
             mock_run_gradle.assert_called_with(
                 Gradle_output_file_path='/mock/Gradle_versions_set_output.txt',
