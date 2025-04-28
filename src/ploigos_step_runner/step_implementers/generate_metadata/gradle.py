@@ -25,7 +25,7 @@ Result Artifact Key                     | Description
 """# pylint: disable=line-too-long
 
 from ploigos_step_runner.results import StepResult
-from ploigos_step_runner.exceptions import StepRunnerException
+# from ploigos_step_runner.exceptions import StepRunnerException
 from ploigos_step_runner.step_implementers.shared import GradleGeneric
 
 from ploigos_step_runner.utils.gradle import  GradleGroovyParser
@@ -119,8 +119,8 @@ class Gradle(GradleGeneric):
                 step_result.message += 'Could not get project version from given build file' \
                     f' ({self.get_value("build-file")})'
         except Exception as err:
-            
+
             step_result.success = False
             step_result.message += "Gradle Version Failure with exception " + str(err)
-            
+
         return step_result
