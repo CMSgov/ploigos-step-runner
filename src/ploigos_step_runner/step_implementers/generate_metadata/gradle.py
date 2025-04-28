@@ -92,6 +92,7 @@ class Gradle(GradleGeneric):
         super()._validate_required_config_or_previous_step_result_artifact_keys()
 
     def _run_step(self):
+
         """Runs the step implemented by this StepImplementer.
 
         Returns
@@ -99,11 +100,14 @@ class Gradle(GradleGeneric):
         StepResult
             Object containing the dictionary results of this step.
         """
-        try:
-            step_result = StepResult.from_step_implementer(self)
-            groovy_parser = GradleGroovyParser( self.get_value('build-file') )
 
-            # get the version
+        step_result = StepResult.from_step_implementer(self)
+
+        groovy_parser = GradleGroovyParser( self.get_value('build-file') )
+
+        # get the version
+
+        try:
             project_version = groovy_parser.get_version()
             if project_version:
                 step_result.add_artifact(
@@ -114,9 +118,9 @@ class Gradle(GradleGeneric):
                 step_result.success = False
                 step_result.message += 'Could not get project version from given build file' \
                     f' ({self.get_value("build-file")})'
-        except StepRunnerException as error:
+        except Exception as err:
+            
             step_result.success = False
-            step_result.message = str(error)
-
-
+            step_result.message += "Gradle Version Failure with exception " + str(err)
+            
         return step_result

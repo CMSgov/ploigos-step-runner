@@ -20,8 +20,9 @@ class GradleDeploy(GradleGeneric):
     """`StepImplementer` for the `uat` step using Gradle by invoking the 'test` gradle phase."""
 
     def __init__(
-        self, workflow_result, parent_work_dir_path, config, environment=None
+            self, workflow_result, parent_work_dir_path, config, environment=None, gradle_tasks=None
     ):  # pylint: disable=too-many-arguments
+
         super().__init__(
             workflow_result=workflow_result,
             parent_work_dir_path=parent_work_dir_path,
@@ -29,8 +30,9 @@ class GradleDeploy(GradleGeneric):
             environment=environment,
             gradle_tasks=["artifactoryPublish"],
         )
-        print(f"environment : {self.environment}")
-        print(f"config : {self.config}")
+
+        print(f"environment : {environment}")
+        print(f"config : {config}")
 
     @staticmethod
     def step_implementer_config_defaults():
