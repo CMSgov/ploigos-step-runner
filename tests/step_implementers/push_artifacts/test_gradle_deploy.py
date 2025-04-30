@@ -104,9 +104,9 @@ class TestStepImplementerGradleDeploy__run_step(
             parent_work_dir_path=parent_work_dir_path
         )
 
-    GradleBuild_regular = 'version = "1.0.0"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
+    GradleBuild_regular = 'version "1.0.0"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
 
-    GradleBuild_badversion = 'version = "fail"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
+    GradleBuild_badversion = 'version "fail"\nversion "fail"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
 
     def write_build(self, app_dir, gradle_contents):
 
@@ -140,7 +140,7 @@ class TestStepImplementerGradleDeploy__run_step(
 
             print(ret)
 
-            ret = self.write_build(app_dir)
+            ret = self.write_build(app_dir, gradle_contents)
 
             print(ret)
 

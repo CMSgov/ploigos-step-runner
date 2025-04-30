@@ -28,8 +28,7 @@ from ploigos_step_runner.results import StepResult
 # from ploigos_step_runner.exceptions import StepRunnerException
 from ploigos_step_runner.step_implementers.shared import GradleGeneric
 
-from ploigos_step_runner.utils.gradle import  GradleGroovyParser
-
+from ploigos_step_runner.utils.gradle import  GradleGroovyParser, GradleGroovyParserException
 
 DEFAULT_CONFIG = {
     'build-file': 'app/build.gradle',
@@ -103,24 +102,25 @@ class Gradle(GradleGeneric):
 
         step_result = StepResult.from_step_implementer(self)
 
-        groovy_parser = GradleGroovyParser( self.get_value('build-file') )
+        build_file_path = self.get_value('build-file')
+
+        groovy_parser = GradleGroovyParser(build_file_path)
 
         # get the version
 
         try:
+
             project_version = groovy_parser.get_version()
+
             if project_version:
                 step_result.add_artifact(
                     name='app-version',
                     value=project_version
                 )
-            else:
-                step_result.success = False
-                step_result.message += 'Could not get project version from given build file' \
-                    f' ({self.get_value("build-file")})'
-        except Exception as err:
 
+        except GradleGroovyParserException as parser_err:
             step_result.success = False
-            step_result.message += "Gradle Version Failure with exception " + str(err)
+            step_result.message = f'Could not get project version from given build file' \
+                    f' ({build_file_path})'
 
         return step_result
