@@ -104,6 +104,86 @@ class TestStepImplementerGradleDeploy__run_step(
             parent_work_dir_path=parent_work_dir_path
         )
 
+    GradleBuild_regular = 'version = "1.0.0"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
+
+    GradleBuild_badversion = 'version = "fail"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
+
+    def write_build(self, app_dir, gradle_contents):
+
+        gradle_fn = os.path.join(app_dir, 'build.gradle')
+
+        with open(gradle_fn, 'w') as outf:
+            outf.write(gradle_contents)
+            outf.close()
+
+    def prepare_appdirectory(self, working_dir, gradle_contents):
+
+        print('Working Directory: ' + str(working_dir))
+
+        if os.path.exists(working_dir):
+
+            app_dir = os.path.join(working_dir, 'app')
+
+            print('Application Directory: ' + str(app_dir))
+
+            if not os.path.exists(app_dir):
+
+                return None
+
+            print('Creating Application Directory.')
+
+            res = os.mkdir(app_dir)
+
+            print('Writing files.')
+
+            ret = self.read_and_replace_password(app_dir)
+
+            print(ret)
+
+            ret = self.write_build(app_dir)
+
+            print(ret)
+
+    def test_failversion(self):
+
+        with TempDirectory() as test_dir:
+
+            parent_work_dir_path = os.path.join(test_dir.path, 'working')
+
+            step_config = {
+                'build-file': 'app/build.gradle',
+                'gradle-additional-arguments': [],
+                'gradle-console-plain': True
+                }
+
+            step_implementer = self.create_step_implementer(
+                step_config=step_config,
+                parent_work_dir_path=parent_work_dir_path,
+            )
+
+            self.prepare_appdirectory(parent_work_dir_path, self.GradleBuild_badversion)
+
+            # run step
+            actual_step_result = step_implementer._run_step()
+
+            # create expected step result
+            expected_step_result = StepResult(
+                step_name='deploy',
+                sub_step_name='GradleDeploy',
+                sub_step_implementer_name='GradleDeploy'
+            )
+            expected_step_result.add_artifact(
+                description="Standard out and standard error from running gradle to update version.",
+                name='gradle-update-version-output',
+                value=str(parent_work_dir_path) + '/deploy/Gradle_versions_set_output.txt'
+            )
+            expected_step_result.add_artifact(
+                description="Standard out and standard error from running gradle to " \
+                    "push artifacts to repository.",
+                name='gradle-push-artifacts-output',
+                value=str(parent_work_dir_path) + '/Gradle-deploy_output.txt'
+            )
+
     def test_success(self):
 
         with TempDirectory() as test_dir:
@@ -120,6 +200,8 @@ class TestStepImplementerGradleDeploy__run_step(
                 step_config=step_config,
                 parent_work_dir_path=parent_work_dir_path,
             )
+
+            self.prepare_appdirectory(parent_work_dir_path, self.GradleBuild_regular)
 
             # run step
             actual_step_result = step_implementer._run_step()

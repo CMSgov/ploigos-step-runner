@@ -33,6 +33,8 @@ class GradleDeploy(GradleGeneric):
 
         print(f"environment : {environment}")
         print(f"config : {config}")
+        print(f"working_dir : {parent_work_dir_path}")
+
 
     @staticmethod
     def step_implementer_config_defaults():
@@ -66,26 +68,23 @@ class GradleDeploy(GradleGeneric):
         """
         return REQUIRED_CONFIG_OR_PREVIOUS_STEP_RESULT_ARTIFACT_KEYS
 
-    def read_and_replace_password(self):
+    def read_and_replace_password(self, app_dir):
+
         """Read a properties file, replace the Artifactory password, and save the changes."""
         properties = {}
 
-        current_path = os.path.join(os.getcwd(), "app/build")
-        print("current_path")
-        print(current_path)
-        files_via_path = os.listdir(current_path)
-        for file in files_via_path:
-            print("\n files_via_path ::" + file)
+        print('Application Dirctory: ' + str(app_dir))
 
+        properties_file = os.path.join(app_dir, 'gradle.properties')
 
-        current_working_directory = os.getcwd()
-        print("current_working_directory")
-        print(current_working_directory)
-        files_via_current_cwd = os.listdir(current_working_directory)
-        for file in files_via_current_cwd:
-            print("\n files_via_current_cwd ::" + file)
+        if not os.path.exists(properties_file):
 
-        properties_file = os.path.join(os.getcwd(), "gradle.properties")
+            properties_contents = 'version=1.0\nartifactory_user=user\nartifactory_password=empty\n'
+
+            with open(properties_file, 'w') as outf:
+                outf.write(properties_contents)
+                outf.close()
+
         artifactory_password = self.get_value("gradle-token-alpha")
 
         # # Read the properties file
@@ -101,7 +100,6 @@ class GradleDeploy(GradleGeneric):
         # Replace the Artifactory password value
         if "artifactory_password" in properties:
             properties["artifactory_password"] = artifactory_password
-
 
         with open(properties_file, "w", encoding="utf8") as file:
             for key, value in properties.items():
@@ -123,7 +121,6 @@ class GradleDeploy(GradleGeneric):
             Object containing the dictionary results of this step.
         """
 
-        self.read_and_replace_password()
         step_result = StepResult.from_step_implementer(self)
 
         # push the artifacts

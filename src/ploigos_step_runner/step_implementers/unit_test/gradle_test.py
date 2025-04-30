@@ -35,8 +35,7 @@ class GradleTest(GradleGeneric):
             workflow_result=workflow_result,
             parent_work_dir_path=parent_work_dir_path,
             config=config,
-            environment=environment,
-            gradle_tasks=['build']
+            environment=environment
         )
 
     @staticmethod
