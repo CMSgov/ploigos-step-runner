@@ -81,7 +81,7 @@ class GradleDeploy(GradleGeneric):
 
             properties_contents = 'version=1.0\nartifactory_user=user\nartifactory_password=empty\n'
 
-            with open(properties_file, 'w') as outf:
+            with open(properties_file, 'w', encoding='utf-8') as outf:
                 outf.write(properties_contents)
                 outf.close()
 

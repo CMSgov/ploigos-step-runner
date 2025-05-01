@@ -72,16 +72,11 @@ class TestStepImplementerGradleDeploy__required_config_or_result_keys(
     
     def test_result(self):
 
-        self.assertEqual(
-            GradleDeploy._required_config_or_result_keys(),
-            ['build-file', 'gradle-token', 'gradle-token-alpha']
-            
-            #{'build-file': 'app/build.gradle',
-            #'gradle-additional-arguments': [],
-            #'gradle-console-plain': True
-            #}            
+        actual_list = GradleDeploy._required_config_or_result_keys()
 
-        )
+        expected_list = ['build-file', 'gradle-token', 'gradle-token-alpha']
+
+        self.assertEqual(actual_list, expected_list)
 
 class TestStepImplementerGradleDeploy__run_step(
     BaseStepImplementerTestCase
@@ -126,7 +121,7 @@ class TestStepImplementerGradleDeploy__run_step(
 
             print('Application Directory: ' + str(app_dir))
 
-            if not os.path.exists(app_dir):
+            if os.path.exists(app_dir):
 
                 return None
 

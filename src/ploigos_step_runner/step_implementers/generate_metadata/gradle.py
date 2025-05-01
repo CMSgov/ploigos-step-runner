@@ -118,7 +118,7 @@ class Gradle(GradleGeneric):
                     value=project_version
                 )
 
-        except GradleGroovyParserException as parser_err:
+        except GradleGroovyParserException:
             step_result.success = False
             step_result.message = f'Could not get project version from given build file' \
                     f' ({build_file_path})'

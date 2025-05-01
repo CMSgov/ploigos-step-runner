@@ -141,16 +141,18 @@ class GradleTest(GradleGeneric):
     def _get_test_report_dir(self):
         return self.get_value('test-reports-dir')
 
-    def _get_test_results_from_file(self, file, attributes):
+    def _get_test_results_from_file(self, filename, attributes):
         test_results = dict()
         try:
-            tree = ET.parse(file)
+            tree = ET.parse(filename)
             root = tree.getroot()
             if root.tag == self.TEST_RESULTS_ROOT_TAG:
                 for attribute in attributes:
                     test_results[attribute] = self._get_test_result(root, attribute)
-        except Exception as e:
-            print(f"WARNING: Error parsing file {file} \n {e}")
+        except FileNotFoundError as fnfe:
+            print(f"WARNING: Error parsing file {filename} \n {fnfe}")
+        except Exception as err:
+            print(f"WARNING: Error parsing file {filename} \n {err}")
 
         return test_results
 
@@ -185,7 +187,7 @@ class GradleTest(GradleGeneric):
                     else:
                         num = int(string)
                         total[k] = int(total[k]) + num
-        except Exception as e:
+        except ValueError as ve:
+            print(f"WARNING: Error converting string to number in file \n {ve}")
 
-            print(f"WARNING: Error converting string to number in file \n {e}")
         return total
