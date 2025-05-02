@@ -106,6 +106,79 @@ class TestStepImplementerGradleTest__get_test_result(
             )
 
 
+    def test_malformed_build_file(
+        self
+    ):
+        with TempDirectory() as test_dir:
+
+            # setup test
+            parent_work_dir_path = os.path.join(test_dir.path, 'working')
+
+            os.mkdir(parent_work_dir_path)
+
+            step_name = 'unit-test'
+
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+
+            os.mkdir(working_step)
+
+            reports_dir = 'test-reports-dir'
+
+            os.mkdir(os.path.join(parent_work_dir_path, reports_dir))
+
+            app_dir = 'app'
+
+            os.mkdir(os.path.join(working_step, app_dir))
+
+            build_file = 'app/build.gradle'
+
+            step_config = {
+                'build-file': os.path.join(working_step, build_file),
+                'gradle-tasks': ['build'],
+                'test-reports-dir': os.path.join(parent_work_dir_path, reports_dir)
+            }
+
+            with open(os.path.join(working_step, build_file), 'w') as outf:
+                outf.write('brokenfile = "testing"\n')
+                outf.close()
+
+            step_implementer = self.create_step_implementer(
+                step_config=step_config,
+                parent_work_dir_path=parent_work_dir_path,
+            )
+
+            # run test
+            actual_step_result = step_implementer._run_step()
+
+            # verify results
+            expected_step_result = StepResult(
+                step_name=step_name,
+                sub_step_name='GradleTest',
+                sub_step_implementer_name='GradleTest'
+            )
+            expected_step_result.add_artifact(
+                description="Standard out and standard error from gradle.",
+                name='gradle-output',
+                value='/mock/gradle_output.txt'
+            )
+            expected_step_result.add_artifact(
+                description="Test report generated when running unit tests.",
+                name='test-report',
+                value='/mock/test-results-dir'
+            )
+
+            return None
+
+            self.assertEqual(actual_step_result, expected_step_result)
+
+            #mock_run_gradle_step.assert_called_once_with(
+            #    mvn_output_file_path='/mock/gradle_output.txt'
+            #)
+            mock_gather_evidence.assert_called_once_with(
+                step_result=Any(StepResult),
+                test_report_dirs='/mock/test-results-dir'
+            )
+
 class TestStepImplementerGradleTest__get_test_conversionfail(
     BaseTestStepImplementerGradleTest
 ):

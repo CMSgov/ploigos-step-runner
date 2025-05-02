@@ -192,8 +192,6 @@ class TestStepImplementerGradleDeploy__run_step(
                 parent_work_dir_path=parent_work_dir_path,
             )
 
-            self.prepare_appdirectory(parent_work_dir_path, self.GradleBuild_regular)
-
             # run step
             actual_step_result = step_implementer._run_step()
 
