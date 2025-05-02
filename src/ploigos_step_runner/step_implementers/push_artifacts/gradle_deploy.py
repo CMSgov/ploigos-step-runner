@@ -121,6 +121,18 @@ class GradleDeploy(GradleGeneric):
             Object containing the dictionary results of this step.
         """
 
+        build_file = self.get_value("build-file")
+
+        parent_work_dir_path = super().work_dir_path
+
+        print('Work Directory Path: ' + parent_work_dir_path)
+        
+        app_dir = os.path.dirname(os.path.abspath(parent_work_dir_path))
+
+        print('Updating gradle.properties file.')
+        
+        res = self.read_and_replace_password(os.path.join(parent_work_dir_path, app_dir))
+        
         step_result = StepResult.from_step_implementer(self)
 
         # push the artifacts

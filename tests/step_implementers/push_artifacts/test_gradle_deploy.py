@@ -111,33 +111,27 @@ class TestStepImplementerGradleDeploy__run_step(
             outf.write(gradle_contents)
             outf.close()
 
-    def prepare_appdirectory(self, working_dir, gradle_contents):
+    def prepare_appdirectory(self, working_dir, step_name, gradle_contents):
 
         print('Working Directory: ' + str(working_dir))
 
         if os.path.exists(working_dir):
 
-            app_dir = os.path.join(working_dir, 'app')
+            app_dir = os.path.join(working_dir, step_name + '/app')
 
             print('Application Directory: ' + str(app_dir))
 
-            if os.path.exists(app_dir):
+            if not os.path.exists(app_dir):
 
-                return None
+                print('Creating Application Directory.')
 
-            print('Creating Application Directory.')
+                res = os.mkdir(app_dir)
 
-            res = os.mkdir(app_dir)
+                print(ret)
 
-            print('Writing files.')
+                ret = self.write_build(app_dir, gradle_contents)
 
-            ret = self.read_and_replace_password(app_dir)
-
-            print(ret)
-
-            ret = self.write_build(app_dir, gradle_contents)
-
-            print(ret)
+                print(ret)
 
     def test_failversion(self):
 
@@ -145,8 +139,10 @@ class TestStepImplementerGradleDeploy__run_step(
 
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'deploy'
+
             step_config = {
-                'build-file': 'app/build.gradle',
+                'build-file': step_name + '/app/build.gradle',
                 'gradle-additional-arguments': [],
                 'gradle-console-plain': True
                 }
@@ -156,7 +152,7 @@ class TestStepImplementerGradleDeploy__run_step(
                 parent_work_dir_path=parent_work_dir_path,
             )
 
-            self.prepare_appdirectory(parent_work_dir_path, self.GradleBuild_badversion)
+            self.prepare_appdirectory(parent_work_dir_path, step_name, self.GradleBuild_badversion)
 
             # run step
             actual_step_result = step_implementer._run_step()

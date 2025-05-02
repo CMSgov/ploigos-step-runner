@@ -42,34 +42,43 @@ class TestStepImplementerGradleTest__get_test_result(
 
             os.mkdir(parent_work_dir_path)
 
+            step_name = 'unit-test'
+
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+
+            os.mkdir(working_step)
+
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(parent_work_dir_path, reports_dir))
 
-            build_file = 'app/gradle.build'
+            app_dir = 'app'
+
+            os.mkdir(os.path.join(working_step, app_dir))
+
+            build_file = 'app/build.gradle'
 
             step_config = {
-                'build-file': os.path.join(parent_work_dir_path, build_file),
+                'build-file': os.path.join(working_step, build_file),
+                'gradle-tasks': ['build'],
                 'test-reports-dir': os.path.join(parent_work_dir_path, reports_dir)
             }
+
+            with open(os.path.join(working_step, build_file), 'w') as outf:
+                outf.write('version "1.0.0"\n')
+                outf.close()
 
             step_implementer = self.create_step_implementer(
                 step_config=step_config,
                 parent_work_dir_path=parent_work_dir_path,
             )
 
-            os.mkdir(os.path.join(parent_work_dir_path, 'app'))            
-
-            with open(os.path.join(parent_work_dir_path, build_file), 'w') as outf:
-                outf.write('version "1.0.0"\n')
-                outf.close()
- 
             # run test
             actual_step_result = step_implementer._run_step()
 
             # verify results
             expected_step_result = StepResult(
-                step_name='unit-test',
+                step_name=step_name,
                 sub_step_name='GradleTest',
                 sub_step_implementer_name='GradleTest'
             )
@@ -100,7 +109,7 @@ class TestStepImplementerGradleTest__get_test_result(
 class TestStepImplementerGradleTest__get_test_conversionfail(
     BaseTestStepImplementerGradleTest
 ):
-    def test_success_with_report_dir(
+    def test_fail_conversion_check(
         self
     ):
 
@@ -108,7 +117,7 @@ class TestStepImplementerGradleTest__get_test_conversionfail(
 
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
-            build_file = 'app/gradle.build'
+            build_file = 'app/build.gradle'
 
             step_config = {
                 'build-file': os.path.join(parent_work_dir_path, build_file)
@@ -309,7 +318,7 @@ class TestStepImplementerGradleTest__combine_test_results(
             os.mkdir(os.path.join(test_dir.path, 'working'))
 
             step_config = {
-                'build-file': '/app/gradle.build',
+                'build-file': '/app/build.gradle',
                 'test-reports-dir': os.path.join(test_dir.path, reports_dir)
             }
             step_implementer = self.create_step_implementer(
