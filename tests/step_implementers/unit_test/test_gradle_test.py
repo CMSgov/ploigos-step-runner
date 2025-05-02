@@ -3,9 +3,11 @@ from unittest.mock import patch
 
 from pip._internal.utils.temp_dir import TempDirectory
 
-from src.ploigos_step_runner.step_implementers.unit_test.gradle_test import GradleTest
+from ploigos_step_runner.step_implementers.unit_test.gradle_test import GradleTest
 from ploigos_step_runner.results import StepResult
+from ploigos_step_runner.results import WorkflowResult
 from tests.helpers.base_step_implementer_test_case import BaseStepImplementerTestCase
+
 import xml.etree.ElementTree as ET
 
 class BaseTestStepImplementerGradleTest(
@@ -29,11 +31,74 @@ class BaseTestStepImplementerGradleTest(
             parent_work_dir_path=parent_work_dir_path
         )
 
+@patch ("ploigos_step_runner.step_implementers.shared.GradleGeneric.__init__")
+class TestStepImplementerGradleTest___init__(BaseStepImplementerTestCase):
+    def test_defaults(self, mock_super_init):
+        workflow_result = WorkflowResult()
+        parent_work_dir_path = '/fake/path'
+        config = {'build-dir': 'app/build.gradle'}
+
+        GradleTest(
+            workflow_result=workflow_result,
+            parent_work_dir_path=parent_work_dir_path,
+            config=config
+        )
+
+        mock_super_init.assert_called_once_with(
+            workflow_result=workflow_result,
+            parent_work_dir_path=parent_work_dir_path,
+            config=config,
+            environment=None
+        )
+
+    def test_given_environment(self, mock_super_init):
+        workflow_result = WorkflowResult()
+        parent_work_dir_path = '/fake/path'
+        config = {'build-dir': 'app/build.gradle'}
+
+        GradleTest(
+            workflow_result=workflow_result,
+            parent_work_dir_path=parent_work_dir_path,
+            config=config,
+            environment='mock-env'
+        )
+
+        mock_super_init.assert_called_once_with(
+            workflow_result=workflow_result,
+            parent_work_dir_path=parent_work_dir_path,
+            config=config,
+            environment='mock-env'
+        )
+
+@patch.object(GradleTest, '_run_gradle_step')
+@patch.object(GradleTest, 'write_working_file', return_value='/mock/gradle_output.txt')
+@patch.object(GradleTest, '_GradleTest__get_test_report_dirs', return_value='/mock/test-results-dir')
+@patch.object(GradleTest, '_gather_evidence_from_test_report_directory_testsuite_elements')
 class TestStepImplementerGradleTest__get_test_result(
     BaseTestStepImplementerGradleTest
 ):
+
+    def create_step_implementer(
+        self,
+        step_config={},
+        workflow_result=None,
+        parent_work_dir_path=''
+    ):
+        return self.create_given_step_implementer(
+            step_implementer=GradleTest,
+            step_config=step_config,
+            step_name='unit-test',
+            implementer='GradleTest',
+            workflow_result=workflow_result,
+            parent_work_dir_path=parent_work_dir_path
+        )
+    
     def test_success_with_report_dir(
-        self
+        self,
+        mock_gather_evidence,
+        mock_get_test_report_dir,
+        mock_write_working_file,
+        mock_run_maven_step
     ):
         with TempDirectory() as test_dir:
 
@@ -50,7 +115,7 @@ class TestStepImplementerGradleTest__get_test_result(
 
             reports_dir = 'test-reports-dir'
 
-            os.mkdir(os.path.join(parent_work_dir_path, reports_dir))
+            os.mkdir(os.path.join(working_step, reports_dir))
 
             app_dir = 'app'
 
@@ -61,7 +126,7 @@ class TestStepImplementerGradleTest__get_test_result(
             step_config = {
                 'build-file': os.path.join(working_step, build_file),
                 'gradle-tasks': ['build'],
-                'test-reports-dir': os.path.join(parent_work_dir_path, reports_dir)
+                'test-reports-dir': os.path.join(working_step, reports_dir)
             }
 
             with open(os.path.join(working_step, build_file), 'w') as outf:
@@ -107,7 +172,11 @@ class TestStepImplementerGradleTest__get_test_result(
 
 
     def test_malformed_build_file(
-        self
+        self,
+        mock_gather_evidence,
+        mock_get_test_report_dir,
+        mock_write_working_file,
+        mock_run_maven_step
     ):
         with TempDirectory() as test_dir:
 
@@ -190,10 +259,21 @@ class TestStepImplementerGradleTest__get_test_conversionfail(
 
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+            
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+
+            os.mkdir(working_step)
+
+            reports_dir = 'test-reports-dir'
+
+            os.mkdir(os.path.join(working_step, reports_dir))
+            
             build_file = 'app/build.gradle'
 
             step_config = {
-                'build-file': os.path.join(parent_work_dir_path, build_file)
+                'build-file': os.path.join(parent_work_dir_path, build_file),
+                'test-reports-dir': os.path.join(working_step, reports_dir)
             }
             step_implementer = self.create_step_implementer(
                 step_config=step_config,
@@ -222,6 +302,10 @@ class TestStepImplementerGradleTest__get_test_results_from_file(
 
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+            
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+            
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(test_dir.path, 'working'))
@@ -253,6 +337,10 @@ class TestStepImplementerGradleTest__get_test_results_noxml(
 
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+            
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+            
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(test_dir.path, 'working'))
@@ -289,6 +377,10 @@ class TestStepImplementerGradleTest__get_test_results_brokenxml(
 
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+            
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(test_dir.path, 'working'))
@@ -339,6 +431,10 @@ class TestStepImplementerGradleTest__get_missing_required_test_attributes(
             # setup test
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+            
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(test_dir.path, 'working'))
@@ -363,6 +459,10 @@ class TestStepImplementerGradleTest__get_dict_with_keys_from_list(
             # setup test
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+            
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(test_dir.path, 'working'))
@@ -386,6 +486,10 @@ class TestStepImplementerGradleTest__combine_test_results(
             # setup test
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'unit-test'
+
+            working_step = os.path.join(test_dir.path, 'working' + '-' + step_name)
+            
             reports_dir = 'test-reports-dir'
 
             os.mkdir(os.path.join(test_dir.path, 'working'))

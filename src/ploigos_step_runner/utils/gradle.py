@@ -172,3 +172,29 @@ def run_gradle( #pylint: disable=too-many-arguments, too-many-locals
     gradle_output_stripped_ansi = re.compile(r'\x1b[^m]*m').sub('', gradle_output)
 
     return gradle_output_stripped_ansi
+
+
+def get_plugin_configuration_values(
+    plugin_name,
+    configuration_key,
+    work_dir_path,
+    pom_file,
+    profiles=None,
+    phases_and_goals=None,
+    require_phase_execution_config=False
+): # pylint: disable=too-many-arguments
+
+    return {}
+
+
+def get_plugin_configuration_absolute_path_values(
+    plugin_name,
+    configuration_key,
+    work_dir_path,
+    pom_file,
+    profiles=None,
+    phases_and_goals=None,
+    require_phase_execution_config=False
+): # pylint: disable=too-many-arguments
+
+    return {}

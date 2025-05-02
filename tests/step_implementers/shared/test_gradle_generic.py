@@ -152,6 +152,7 @@ class TestStepImplementerSharedGradleGeneric__run_step(
 class TestStepImplementerSharedGradleGeneric__run_additional(
     BaseTestStepImplementerSharedGradleGeneric
 ):
+
     def test_additional(self):
         with TempDirectory() as test_dir:
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
@@ -179,3 +180,28 @@ class TestStepImplementerSharedGradleGeneric__run_additional(
                 actual_gradle_result,
                 expected_gradle_result
             )
+
+    def test_additional_RaiseError(self):
+        with TempDirectory() as test_dir:
+            parent_work_dir_path = os.path.join(test_dir.path, 'working')
+            
+            os.mkdir(parent_work_dir_path)
+            os.mkdir(os.path.join(parent_work_dir_path, 'app'))
+
+            build_file = 'app/build.gradle'
+            
+            with open(os.path.join(parent_work_dir_path, build_file), 'w') as outf:
+                outf.write('version "1.0"\n')
+                outf.close()
+                
+            step_config = {'build-file': os.path.join(parent_work_dir_path, 'app/build.gradle'), 'gradle-tasks': ['build']}
+            step_implementer = self.create_step_implementer(
+                step_config=step_config,
+                parent_work_dir_path=parent_work_dir_path
+            )
+
+            try:
+                actual_gradle_result = step_implementer._run_gradle_step(gradle_output_file_path='gradle_output.txt', step_implementer_additional_arguments=['--invalid-option'])
+            except StepRunnerException as sre:
+                return None
+

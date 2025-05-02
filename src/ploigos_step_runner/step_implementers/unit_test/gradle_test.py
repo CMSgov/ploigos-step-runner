@@ -1,11 +1,11 @@
 
 """PSR step for running Unit Tests with Gradle"""
-import os
 import xml.etree.ElementTree as ET
 
 from ploigos_step_runner.exceptions import StepRunnerException
 from ploigos_step_runner.results.step_result import StepResult
 from ploigos_step_runner.step_implementers.shared.gradle_generic import GradleGeneric
+from ploigos_step_runner.step_implementers.shared.gradle_test_reporting_mixin import GradleTestReportingMixin
 
 DEFAULT_CONFIG = {
     'build-file': 'app/build.gradle',
@@ -16,7 +16,7 @@ REQUIRED_CONFIG_OR_PREVIOUS_STEP_RESULT_ARTIFACT_KEYS = [
     'build-file'
 ]
 
-class GradleTest(GradleGeneric):
+class GradleTest(GradleGeneric, GradleTestReportingMixin):
     """`StepImplementer` for the `uat` step using Gradle by invoking the 'test` gradle phase.
     """
 
@@ -29,7 +29,8 @@ class GradleTest(GradleGeneric):
         workflow_result,
         parent_work_dir_path,
         config,
-        environment=None
+        environment=None,
+        gradle_tasks=['test']
     ):
         super().__init__(
             workflow_result=workflow_result,
@@ -100,44 +101,64 @@ class GradleTest(GradleGeneric):
                 value=gradle_output_file_path
             )
 
-        # get test result dirs
-        test_report_dir = self._get_test_report_dir()
-        if test_report_dir:
+        # get test report dir
+        test_report_dirs = self.__get_test_report_dirs()
+        if test_report_dirs:
             step_result.add_artifact(
                 description="Test report generated when running unit tests.",
                 name='test-report',
-                value=test_report_dir
+                value=test_report_dirs
             )
 
-            # gather data
-            all_test_results = self._get_dict_with_keys_from_list(self.TEST_RESULTS_ATTRIBUTES)
-            for filename in os.listdir(test_report_dir):
-                if filename.endswith('.xml'):
-                    fullname = os.path.join(test_report_dir, filename)
-                    test_results = \
-                        self._get_test_results_from_file(fullname, self.TEST_RESULTS_ATTRIBUTES)
+            # gather test report evidence
+            self._gather_evidence_from_test_report_directory_testsuite_elements(
+                step_result=step_result,
+                test_report_dirs=test_report_dirs
+            )
 
-                    # check for valid file
-                    if not test_results:
-                        step_result.message += (f'\nWARNING: Did not find any test results for file {fullname}')
-
-                    # check for required attributes
-                    missing_attributes = self._get_missing_required_test_attributes(test_results, self.TEST_RESULTS_ATTRIBUTES_REQUIRED)
-                    if missing_attributes:
-                        step_result.message += (f'\nWARNING: Missing required test attributes {missing_attributes} in file {fullname}')
-
-                    # add to consulidated results
-                    all_test_results = self._combine_test_results(all_test_results, test_results)
-
-            # add test results to the evidence
-            for attribute in all_test_results.keys():
-                step_result.add_evidence(
-                    name=attribute,
-                    value=all_test_results[attribute]
-                )
-
+        # return result
         return step_result
 
+    def __get_test_report_dirs(self):
+        """Gets the test report directory(s)
+
+        Search Priority:
+        * values -> 'test-reports-dir'
+        * gradle.properties -> 
+
+        Returns
+        -------
+        [str] or str
+            Path(s) to the directory containing the test reports.
+        """
+        # user supplied where the test reports go, just use that
+        test_report_dirs = self.get_value(['test-reports-dir','test-reports-dirs'])
+
+        # else do our best to find them
+        if not test_report_dirs:
+            # attempt to get failsafe test report dir, if not, try for surefire
+            test_report_dirs = None
+            try:
+                test_report_dirs = self._attempt_get_test_report_directory(
+                    plugin_name=GradleTestReportingMixin.SUREFIRE_PLUGIN_NAME,
+                    configuration_key=\
+                        GradleTestReportingMixin.SUREFIRE_PLUGIN_REPORTS_DIR_CONFIG_NAME,
+                    default=GradleTestReportingMixin.SUREFIRE_PLUGIN_DEFAULT_REPORTS_DIR
+                )
+            except StepRunnerException:
+                print(
+                    'WARNING: Did not find any expected test reporting plugin'
+                    f' ({GradleTestReportingMixin.SUREFIRE_PLUGIN_NAME})'
+                    ' to read artifacts and evidence from.'
+                    ' This is not wholly unexpected because there is enumerable maven plugins,'
+                    ' and enumerable ways to configure them.'
+                    ' Rather then relying on this step implementer to try and figure out'
+                    ' where the test reports are you can configure it manually via the'
+                    ' step implementer config (test-reports-dir).'
+                )
+
+        return test_report_dirs
+    
     def _get_test_report_dir(self):
         return self.get_value('test-reports-dir')
 
@@ -155,7 +176,7 @@ class GradleTest(GradleGeneric):
             print(f"WARNING: Error parsing file {filename} \n {err}")
 
         return test_results
-
+    
     def _get_test_result(self, root, attribute):
         value = root.attrib[attribute]
         return value
