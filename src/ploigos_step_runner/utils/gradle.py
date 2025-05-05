@@ -205,3 +205,4 @@ def get_plugin_configuration_absolute_path_values(
     config_values = get_plugin_configuration_values(plugin_name=plugin_name, configuration_key=configuration_key, work_dir_path=work_dir_path, build_file=build_file)
 
     return absolute_path_values
+

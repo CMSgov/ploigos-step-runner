@@ -152,3 +152,40 @@ class TestGradleUtils_run_gradle(BaseTestCase):
                 _out=Any(StringIO),
                 _err=Any(StringIO)
             )
+
+class TestGradleUtils_get_plugin_configuration_values(BaseTestCase):
+
+    def test_plugin_configuration_values(
+        self
+    ):
+
+        # run test
+        actual_values = get_plugin_configuration_values(
+            plugin_name='gradle-plugin',
+            configuration_key='AwesomeConfig',
+            work_dir_path='working',
+            build_file='build.gradle',
+            profiles=['test-profile'],
+            phases_and_goals=None
+        )
+
+        # validate
+        # self.assertEqual(actual_values, ['mock-config-value-1'])
+
+    def test_plugin_configuration_absolute_path_values(
+        self
+    ):
+
+        # run test
+        actual_values = get_plugin_configuration_absolute_path_values(
+            plugin_name='gradle-plugin',
+            configuration_key='AwesomeConfig',
+            work_dir_path='working',
+            build_file='build.gradle',
+            profiles=['test-profile'],
+            phases_and_goals=None
+        )
+
+        # validate        
+
+
