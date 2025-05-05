@@ -95,6 +95,7 @@ class GradleTest(GradleGeneric, GradleTestReportingMixin):
             step_result.message = "Error running Gradle. " \
                                   f"More details maybe found in report artifacts: {error}"
         finally:
+
             step_result.add_artifact(
                 description="Standard out and standard error from Gradle.",
                 name='gradle-output',
