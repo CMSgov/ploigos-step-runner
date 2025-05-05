@@ -138,8 +138,6 @@ class GradleTest(GradleGeneric, GradleTestReportingMixin):
         # else do our best to find them
         if not test_report_dirs:
             # attempt to get failsafe test report dir, if not, try for surefire
-            test_report_dirs = None
-
             test_report_dirs = self._attempt_get_test_report_directory(
                 plugin_name=GradleTestReportingMixin.SUREFIRE_PLUGIN_NAME,
                 configuration_key=\
@@ -149,8 +147,8 @@ class GradleTest(GradleGeneric, GradleTestReportingMixin):
 
         return test_report_dirs
 
-    def _get_test_report_dir(self):
-        return self.get_value('test-reports-dir')
+#    def _get_test_report_dir(self):
+#       return self.get_value('test-reports-dir')
 
     def _get_test_results_from_file(self, filename, attributes):
         test_results = dict()
