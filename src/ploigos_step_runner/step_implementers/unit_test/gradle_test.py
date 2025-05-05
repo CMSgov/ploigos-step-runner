@@ -138,27 +138,16 @@ class GradleTest(GradleGeneric, GradleTestReportingMixin):
         if not test_report_dirs:
             # attempt to get failsafe test report dir, if not, try for surefire
             test_report_dirs = None
-            try:
-                test_report_dirs = self._attempt_get_test_report_directory(
-                    plugin_name=GradleTestReportingMixin.SUREFIRE_PLUGIN_NAME,
-                    configuration_key=\
-                        GradleTestReportingMixin.SUREFIRE_PLUGIN_REPORTS_DIR_CONFIG_NAME,
-                    default=GradleTestReportingMixin.SUREFIRE_PLUGIN_DEFAULT_REPORTS_DIR
-                )
-            except StepRunnerException:
-                print(
-                    'WARNING: Did not find any expected test reporting plugin'
-                    f' ({GradleTestReportingMixin.SUREFIRE_PLUGIN_NAME})'
-                    ' to read artifacts and evidence from.'
-                    ' This is not wholly unexpected because there is enumerable maven plugins,'
-                    ' and enumerable ways to configure them.'
-                    ' Rather then relying on this step implementer to try and figure out'
-                    ' where the test reports are you can configure it manually via the'
-                    ' step implementer config (test-reports-dir).'
-                )
+
+            test_report_dirs = self._attempt_get_test_report_directory(
+                plugin_name=GradleTestReportingMixin.SUREFIRE_PLUGIN_NAME,
+                configuration_key=\
+                GradleTestReportingMixin.SUREFIRE_PLUGIN_REPORTS_DIR_CONFIG_NAME,
+                default=GradleTestReportingMixin.SUREFIRE_PLUGIN_DEFAULT_REPORTS_DIR
+            )
 
         return test_report_dirs
-    
+
     def _get_test_report_dir(self):
         return self.get_value('test-reports-dir')
 
@@ -176,7 +165,7 @@ class GradleTest(GradleGeneric, GradleTestReportingMixin):
             print(f"WARNING: Error parsing file {filename} \n {err}")
 
         return test_results
-    
+
     def _get_test_result(self, root, attribute):
         value = root.attrib[attribute]
         return value

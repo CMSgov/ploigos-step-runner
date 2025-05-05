@@ -178,23 +178,30 @@ def get_plugin_configuration_values(
     plugin_name,
     configuration_key,
     work_dir_path,
-    pom_file,
+    build_file,
     profiles=None,
     phases_and_goals=None,
     require_phase_execution_config=False
 ): # pylint: disable=too-many-arguments
 
-    return {}
+    configuration_values = []
 
+    configuration_values = list(set(configuration_values))
+    configuration_values.sort()
+    return configuration_values
 
 def get_plugin_configuration_absolute_path_values(
     plugin_name,
     configuration_key,
     work_dir_path,
-    pom_file,
+    build_file,
     profiles=None,
     phases_and_goals=None,
     require_phase_execution_config=False
 ): # pylint: disable=too-many-arguments
 
-    return {}
+    absolute_path_values = []
+
+    config_values = get_plugin_configuration_values(plugin_name=plugin_name, configuration_key=configuration_key, work_dir_path=work_dir_path, build_file=build_file)
+
+    return absolute_path_values

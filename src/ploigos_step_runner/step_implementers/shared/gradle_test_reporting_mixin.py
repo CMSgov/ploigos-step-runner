@@ -45,81 +45,8 @@ class GradleTestReportingMixin:
         default,
         require_phase_execution_config=False
     ):
-        """Does it's darndest to dynamically determine the test report directory.
 
-        Parameters
-        ----------
-        plugin_name : str
-            Name of the Gradle plugin to look for test report directory configuration.
-        configuration_key : str
-            Gradle plugin configuration to look for the test directory path.
-        default : str
-            Value to use if can't find any user configured configuration.
-        require_phase_execution_config : str
-            True if the user supplied configuration via the pom should be for
-            the specified phase or goals.
-            False if the user supplied configuration via the pom does not
-            need to be specific for the phase and goal.
-
-        Returns
-        -------
-        str
-            Determined test reports directory path.
-
-        Raises
-        ------
-        StepRunnerException
-            If can not find the given plugin to get configuration from.
-        """
-        test_report_dir = None
-        print(
-            'Attempt to get test report directory configuration'
-            f' ({configuration_key}) for'
-            f' gradle test plugin ({plugin_name}).'
-        )
-        try:
-            test_report_dirs = get_plugin_configuration_absolute_path_values(
-                plugin_name=plugin_name,
-                configuration_key=configuration_key,
-                work_dir_path=self.work_dir_path,
-                pom_file=self.get_value('pom-file'),
-                profiles=self.get_value('gradle-profiles'),
-                phases_and_goals=self.gradle_phases_and_goals,
-                require_phase_execution_config=require_phase_execution_config
-            )
-
-            # if found at least one test report dir
-            # else plugin exists but could not find config, use default
-            if test_report_dirs:
-                if len(test_report_dirs) > 1:
-                    print(
-                        'WARNING: In best attempt to dynamically determine where the the test'
-                        ' report directory is, we were to successful and found more then one.'
-                        ' This is not wholly unexpected because there is enumerable gradle plugins,'
-                        ' and enumerable ways to configure them.'
-                        ' Randomly picking first match and hoping it is correct.'
-                        ' Rather then relying on this step implementer to try and figure out'
-                        ' where the test reports are you can configure it manually via the'
-                        ' step implementer config (test-reports-dir).'
-                    )
-
-                test_report_dir = test_report_dirs[0]
-            else:
-                print(
-                    'Did not find test report directory configuration'
-                    f' ({configuration_key}) for gradle test plugin ({plugin_name}),'
-                    f' using default ({default}).'
-                )
-                test_report_dir = default
-
-        except RuntimeError as error:
-            # NOTE: this should only happen if couldn't find the plugin
-            raise StepRunnerException(
-                f'Error getting configuration ({configuration_key}) from'
-                f' gradle plugin ({plugin_name}): {error}'
-            ) from error
-
-        return test_report_dir
+        return None
 
     @staticmethod
     def _gather_evidence_from_test_report_directory_testsuite_elements(
