@@ -121,8 +121,6 @@ class GradleDeploy(GradleGeneric):
             Object containing the dictionary results of this step.
         """
 
-        build_file = self.get_value("build-file")
-
         parent_work_dir_path = super().work_dir_path
 
         print('Work Directory Path: ' + parent_work_dir_path)

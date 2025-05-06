@@ -3,6 +3,7 @@
 
 import re
 import sys
+import os
 from io import StringIO
 
 import sh
@@ -181,10 +182,20 @@ def get_plugin_configuration_values(
     build_file,
     profiles=None,
     phases_and_goals=None,
-    require_phase_execution_config=False
+    require_phase_execution_config=None
 ): # pylint: disable=too-many-arguments
+    """Gets the value(s) of a given configuration key for a given gradle plugin.
+    """
 
     configuration_values = []
+
+    print(plugin_name)
+    print(configuration_key)
+    print(work_dir_path)
+    print(build_file)
+    print(profiles)
+    print(phases_and_goals)
+    print(require_phase_execution_config)
 
     configuration_values = list(set(configuration_values))
     configuration_values.sort()
@@ -197,12 +208,36 @@ def get_plugin_configuration_absolute_path_values(
     build_file,
     profiles=None,
     phases_and_goals=None,
-    require_phase_execution_config=False
+    require_phase_execution_config=None
 ): # pylint: disable=too-many-arguments
+    """Gets the value(s) of a given configuration key for a given gradle plugin and converts
+    them to absolute paths (if they arn't already), if they were relative paths, assumes,
+    relative to the given build.gradle file.
+    """
 
-    absolute_path_values = []
+    absolute_path_config_values = []
 
-    config_values = get_plugin_configuration_values(plugin_name=plugin_name, configuration_key=configuration_key, work_dir_path=work_dir_path, build_file=build_file)
+    config_values = get_plugin_configuration_values(
+        plugin_name=plugin_name,
+        configuration_key=configuration_key,
+        work_dir_path=work_dir_path,
+        build_file=build_file,
+        profiles=profiles,
+        phases_and_goals=phases_and_goals,
+        require_phase_execution_config=require_phase_execution_config
+    )
 
-    return absolute_path_values
+    # transform that configuration into absolute paths for consistency
+    if config_values:
+        for config_value in config_values:
+            # if absolute path use as is
+            # else if relative path assume its relative to the pom and calc absolute path
+            if os.path.isabs(config_value):
+                absolute_path_config_values.append(config_value)
+            else:
+                absolute_path_config_values.append(os.path.join(
+                    os.path.dirname(os.path.abspath(build_file)),
+                    config_value
+                ))
 
+    return absolute_path_config_values

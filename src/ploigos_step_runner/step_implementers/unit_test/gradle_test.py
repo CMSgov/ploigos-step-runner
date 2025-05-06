@@ -30,7 +30,7 @@ class GradleTest(GradleGeneric, GradleTestReportingMixin):
         parent_work_dir_path,
         config,
         environment=None,
-        gradle_tasks=['test']
+        gradle_tasks=None
     ):
         super().__init__(
             workflow_result=workflow_result,

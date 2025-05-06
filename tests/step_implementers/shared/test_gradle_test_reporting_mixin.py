@@ -33,9 +33,6 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             side_effect = get_value_side_effect
         )
 
-        # mock gradle_phases_and_goals
-        gradle_test_reporting_mixin.gradle_phases_and_goals = []
-
         return gradle_test_reporting_mixin
 
     def test_one_found_result(self, get_plugin_configuration_absolute_path_values_mock):
@@ -49,8 +46,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
         actual_test_report_dir = gradle_test_reporting_mixin._attempt_get_test_report_directory(
             plugin_name='mock-gradle-test-plugin',
             configuration_key='mock-reports-dir-config-key',
-            default='/mock/default',
-            require_phase_execution_config=False
+            default='/mock/default'
         )
 
         print(get_plugin_configuration_absolute_path_values_mock)
@@ -63,9 +59,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             configuration_key='mock-reports-dir-config-key',
             work_dir_path='/mock/work-dir-path',
             pom_file='mock-pom.xml',
-            profiles=[],
-            phases_and_goals=[],
-            require_phase_execution_config=False
+            profiles=[]
         )
 
         self.assertEqual(actual_test_report_dir, '/mock/test-dir')
@@ -84,8 +78,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
         actual_test_report_dir = gradle_test_reporting_mixin._attempt_get_test_report_directory(
             plugin_name='mock-gradle-test-plugin',
             configuration_key='mock-reports-dir-config-key',
-            default='/mock/default',
-            require_phase_execution_config=False
+            default='/mock/default'
         )
 
         return None
@@ -96,9 +89,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             configuration_key='mock-reports-dir-config-key',
             work_dir_path='/mock/work-dir-path',
             pom_file='mock-pom.xml',
-            profiles=[],
-            phases_and_goals=[],
-            require_phase_execution_config=False
+            profiles=[]
         )
 
         self.assertEqual(actual_test_report_dir, '/mock/test-dir1')
@@ -114,8 +105,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
         actual_test_report_dir = gradle_test_reporting_mixin._attempt_get_test_report_directory(
             plugin_name='mock-gradle-test-plugin',
             configuration_key='mock-reports-dir-config-key',
-            default='/mock/default',
-            require_phase_execution_config=False
+            default='/mock/default'
         )
 
         return None
@@ -126,9 +116,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             configuration_key='mock-reports-dir-config-key',
             work_dir_path='/mock/work-dir-path',
             build_file='mock-build.gradle',
-            profiles=[],
-            phases_and_goals=[],
-            require_phase_execution_config=False
+            profiles=[]
         )
 
         self.assertEqual(actual_test_report_dir, '/mock/default')
@@ -154,8 +142,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             gradle_test_reporting_mixin._attempt_get_test_report_directory(
                 plugin_name='mock-gradle-test-plugin',
                 configuration_key='mock-reports-dir-config-key',
-                default='/mock/default',
-                require_phase_execution_config=False
+                default='/mock/default'
             )
 
         return None
@@ -166,15 +153,15 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             configuration_key='mock-reports-dir-config-key',
             work_dir_path='/mock/work-dir-path',
             pom_file='mock-pom.xml',
-            profiles=[],
-            phases_and_goals=[],
-            require_phase_execution_config=False
+            profiles=[]
         )
 
 @patch.object(GradleTestReportingMixin, '_collect_report_results')
 class TestGradleTestReportingMixin__gather_evidence_from_test_report_directory_testsuite_elements(
     unittest.TestCase
 ):
+
+    
     def test_found_all_attributes(self, mock_collect_report_results):
         with TempDirectory() as test_dir:
             # setup test
@@ -221,6 +208,54 @@ class TestGradleTestReportingMixin__gather_evidence_from_test_report_directory_t
             mock_collect_report_results.assert_called_once_with(
                 test_report_dirs=[test_report_dir]
             )
+
+    
+    def test_with_multiple_report_dirs(self, mock_collect_report_results):
+        with TempDirectory() as test_dir:
+            # setup test
+            actual_step_result = StepResult(
+                step_name='mock-gradle-test-step',
+                sub_step_name='mock-gradle-test-sub-step',
+                sub_step_implementer_name='MockGradleTestReportingMixinStepImplementer'
+            )
+            test_report_dir = os.path.join(
+                test_dir.path,
+                'mock-test-results'
+            )
+
+            # setup mocks
+            mock_collect_report_results.return_value = [
+                {
+                    "time": 1.42,
+                    "tests": 42,
+                    "errors": 3,
+                    "skipped": 2,
+                    "failures": 1
+                },
+                []
+            ]
+
+            # run test
+            GradleTestReportingMixin._gather_evidence_from_test_report_directory_testsuite_elements(
+                step_result=actual_step_result,
+                test_report_dirs=[test_report_dir, 'test-report-directory-2']
+            )
+
+            # verify results
+            expected_step_result = StepResult(
+                step_name='mock-gradle-test-step',
+                sub_step_name='mock-gradle-test-sub-step',
+                sub_step_implementer_name='MockGradleTestReportingMixinStepImplementer'
+            )
+            expected_step_result.add_evidence(name='time', value=1.42)
+            expected_step_result.add_evidence(name='tests', value=42)
+            expected_step_result.add_evidence(name='errors', value=3)
+            expected_step_result.add_evidence(name='skipped', value=2)
+            expected_step_result.add_evidence(name='failures', value=1)
+            self.assertEqual(actual_step_result, expected_step_result)
+            mock_collect_report_results.assert_called_once_with(
+                test_report_dirs=[test_report_dir, 'test-report-directory-2']
+            )            
 
     def test_found_dir_found_some_attributes(self, mock_collect_report_results):
         with TempDirectory() as test_dir:
