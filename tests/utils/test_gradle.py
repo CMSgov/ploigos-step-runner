@@ -153,39 +153,22 @@ class TestGradleUtils_run_gradle(BaseTestCase):
                 _err=Any(StringIO)
             )
 
-class TestGradleUtils_get_plugin_configuration_values(BaseTestCase):
 
-    def test_plugin_configuration_values(
-        self
-    ):
+class TestGradleUtils_check_plugin(BaseTestCase):
 
-        # run test
-        actual_values = get_plugin_configuration_values(
-            plugin_name='gradle-plugin',
-            configuration_key='AwesomeConfig',
-            work_dir_path='working',
-            build_file='build.gradle',
-            profiles=['test-profile'],
-            phases_and_goals=None
-        )
+    def test_plugin_not_set(self):
 
-        # validate
-        # self.assertEqual(actual_values, ['mock-config-value-1'])
+        received_exception = False
+        
+        try:
+            result = get_plugin_configuration_absolute_path_values(plugin_name=None, configuration_key={}, work_dir_path='/tmp', build_file='build.gradle')
+        except RuntimeError as re:
+            print(re)
+            received_exception = True
 
-    def test_plugin_configuration_absolute_path_values(
-        self
-    ):
+        if not received_exception:
+            raise RuntimeError
 
-        # run test
-        actual_values = get_plugin_configuration_absolute_path_values(
-            plugin_name='gradle-plugin',
-            configuration_key='AwesomeConfig',
-            work_dir_path='working',
-            build_file='build.gradle',
-            profiles=['test-profile'],
-            phases_and_goals=None
-        )
+    def test_absolute_path_values(self):
 
-        # validate        
-
-
+        absolute_path_config_values = get_plugin_configuration_absolute_path_values(plugin_name='testing', configuration_key={}, work_dir_path='/tmp', build_file='build.gradle')

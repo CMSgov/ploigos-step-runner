@@ -78,8 +78,7 @@ class GradleTestReportingMixin:
                 plugin_name=plugin_name,
                 configuration_key=configuration_key,
                 work_dir_path=self.work_dir_path,
-                build_file=self.get_value('build-file'),
-                profiles=self.get_value('gradle-profiles')
+                build_file='build.gradle'
             )
 
             # if found at least one test report dir

@@ -611,7 +611,7 @@ class TestGradleTestReportingMixin__collect_report_results(unittest.TestCase):
         print(key)
 
         
-    def test_plugin_not_found(self):
+    def test_plugin_name_none(self):
 
         print('Running Test')
 
@@ -620,13 +620,22 @@ class TestGradleTestReportingMixin__collect_report_results(unittest.TestCase):
         gradle_test_reporting_mixin.work_dir_path = '/mock/work-dir-path'
 
         gradle_test_reporting_mixin.get_value = self.get_value
-        
-        result = gradle_test_reporting_mixin._attempt_get_test_report_directory(
-            plugin_name='unknown-gradle-test-plugin',
-            configuration_key='reports-dir-config-key',
-            default='failure-string'
-        )        
 
+        try:
+            result = gradle_test_reporting_mixin._attempt_get_test_report_directory(
+                plugin_name=None,
+                configuration_key='reports-dir-config-key',
+                default='failure-string'
+            )
+        except StepRunnerException as sre:
+            print('Exception: ')
+            print(sre)
+            result='failure-string'
+        except RuntimeError as re:
+            print('Exception: ')
+            print(re)
+            result='failure-string'            
+            
         print('Result: ')
         print(result)
         

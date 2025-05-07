@@ -186,7 +186,7 @@ def get_plugin_configuration_values(
     """Gets the value(s) of a given configuration key for a given gradle plugin.
     """
 
-    configuration_values = []
+    configuration_values = {'build': None, '/tmp/gradle.build': None}
 
     print(plugin_name)
     print(configuration_key)
