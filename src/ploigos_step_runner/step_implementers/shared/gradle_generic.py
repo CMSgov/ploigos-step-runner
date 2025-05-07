@@ -167,7 +167,7 @@ class GradleGeneric(StepImplementer):
             additional_arguments = self.get_value('gradle-additional-arguments')
 
         print('Gradle Tasks: ' + str(tasks))
-            
+
         run_gradle(
             gradle_output_file_path=gradle_output_file_path,
             tasks=tasks,
