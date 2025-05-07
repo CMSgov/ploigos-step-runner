@@ -51,7 +51,7 @@ class GradleTestReportingMixin:
         plugin_name : str
             Name of the Gradle plugin to look for test report directory configuration.
         configuration_key : str
-            Maven plugin configuration to look for the test directory path.
+            Gradle plugin configuration to look for the test directory path.
         default : str
             Value to use if can't find any user configured configuration.
 
@@ -110,7 +110,7 @@ class GradleTestReportingMixin:
             # NOTE: this should only happen if couldn't find the plugin
             raise StepRunnerException(
                 f'Error getting configuration ({configuration_key}) from'
-                f' maven plugin ({plugin_name}): {error}'
+                f' gradle plugin ({plugin_name}): {error}'
             ) from error
 
         #properties = {}

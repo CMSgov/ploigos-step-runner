@@ -131,7 +131,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
         )
 
         return None
-
+        
         # run test
         with self.assertRaisesRegex(
             StepRunnerException,
@@ -146,7 +146,7 @@ class TestGradleTestReportingMixin__attempt_get_test_report_directory(BaseStepIm
             )
 
         return None
-
+            
         # verify results
         get_plugin_configuration_absolute_path_values_mock.assert_called_once_with(
             plugin_name='mock-gradle-test-plugin',
@@ -606,6 +606,33 @@ class TestGradleTestReportingMixin__collect_report_results(unittest.TestCase):
                 ]
             )
 
+    def get_value(self, key):
+
+        print(key)
+
+        
+    def test_plugin_not_found(self):
+
+        print('Running Test')
+
+        gradle_test_reporting_mixin = GradleTestReportingMixin()
+
+        gradle_test_reporting_mixin.work_dir_path = '/mock/work-dir-path'
+
+        gradle_test_reporting_mixin.get_value = self.get_value
+        
+        result = gradle_test_reporting_mixin._attempt_get_test_report_directory(
+            plugin_name='unknown-gradle-test-plugin',
+            configuration_key='reports-dir-config-key',
+            default='failure-string'
+        )        
+
+        print('Result: ')
+        print(result)
+        
+        self.assertEqual(result, 'failure-string')
+
+        
     def test_multiple_test_suite_elements(self):
         with TempDirectory() as test_dir:
             # setup test

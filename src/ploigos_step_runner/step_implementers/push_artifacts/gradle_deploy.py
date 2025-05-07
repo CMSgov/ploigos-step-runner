@@ -31,10 +31,11 @@ class GradleDeploy(GradleGeneric):
             gradle_tasks=["artifactoryPublish"],
         )
 
+        print('GradleDeploy: ')
         print(f"environment : {environment}")
         print(f"config : {config}")
         print(f"working_dir : {parent_work_dir_path}")
-
+        print(f"gradle_tasks : {gradle_tasks}")
 
     @staticmethod
     def step_implementer_config_defaults():
@@ -72,6 +73,8 @@ class GradleDeploy(GradleGeneric):
 
         """Read a properties file, replace the Artifactory password, and save the changes."""
         properties = {}
+
+        print('Updating Password for Gradle Deploy.')
 
         print('Application Dirctory: ' + str(app_dir))
 
@@ -125,7 +128,11 @@ class GradleDeploy(GradleGeneric):
 
         print('Work Directory Path: ' + parent_work_dir_path)
 
-        app_dir = os.path.dirname(os.path.abspath(parent_work_dir_path))
+        build_fn = self.get_value("build-file")
+
+        print('Build File: ' + build_fn)
+
+        app_dir = os.path.dirname(build_fn)
 
         print('Updating gradle.properties file.')
 

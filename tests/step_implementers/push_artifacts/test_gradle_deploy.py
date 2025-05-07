@@ -101,38 +101,36 @@ class TestStepImplementerGradleDeploy__run_step(
 
     GradleBuild_regular = 'version "1.0.0"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
 
+    GradleBuild_testpublish = 'task artifactoryPublish { doLast { def name = project.hasProperty(\'name\') ? project.name : \'Gradle\'\n println "Hello, ${name}!" } }'
+    
     GradleBuild_badversion = 'version "fail"\nversion "fail"\nplugins { id "com.jfrog.artifactory" version "5.+" } artifactory { publish { contextUrl = "http://127.0.0.1:8081/artifactory"\nrepository { repoKey = "libs-snapshot-local"\nusername = "${artifactory_user}"\npassword = "${artifactory_password}" } defaults { publications("ALL_PUBLICATIONS") } } }'
 
-    def write_build(self, app_dir, gradle_contents):
+    def write_build(self, app_dir, build_fn, gradle_contents):
 
-        gradle_fn = os.path.join(app_dir, 'build.gradle')
+        gradle_fn = os.path.join(app_dir, build_fn)
 
         with open(gradle_fn, 'w') as outf:
             outf.write(gradle_contents)
             outf.close()
 
-    def prepare_appdirectory(self, working_dir, step_name, gradle_contents):
+    def prepare_appdirectory(self, app_dir, build_fn, gradle_contents):
 
-        print('Working Directory: ' + str(working_dir))
+        print('Application Directory: ' + str(app_dir))
 
-        if os.path.exists(working_dir):
+        if os.path.exists(app_dir):
 
-            app_dir = os.path.join(working_dir, step_name + '/app')
+            print('Creating build file in existing application directory ' + app_dir)
 
-            print('Application Directory: ' + str(app_dir))
+            self.write_build(app_dir, build_fn, gradle_contents)
 
-            if not os.path.exists(app_dir):
+    def setup_testdirectories(self, parent_work_dir_path):
 
-                print('Creating Application Directory.')
+        app_dir = os.path.join(parent_work_dir_path, 'app')
 
-                res = os.mkdir(app_dir)
-
-                print(ret)
-
-                ret = self.write_build(app_dir, gradle_contents)
-
-                print(ret)
-
+        os.mkdir(app_dir)
+        
+        return app_dir
+        
     def test_failversion(self):
 
         with TempDirectory() as test_dir:
@@ -141,8 +139,14 @@ class TestStepImplementerGradleDeploy__run_step(
 
             step_name = 'deploy'
 
+            app_dir = self.setup_testdirectories(test_dir.path)
+            
+            build_fn = os.path.basename('app/build.gradle')
+
+            self.prepare_appdirectory(app_dir, build_fn, self.GradleBuild_badversion)
+            
             step_config = {
-                'build-file': step_name + '/app/build.gradle',
+                'build-file': os.path.join(app_dir, build_fn),
                 'gradle-additional-arguments': [],
                 'gradle-console-plain': True
                 }
@@ -151,8 +155,6 @@ class TestStepImplementerGradleDeploy__run_step(
                 step_config=step_config,
                 parent_work_dir_path=parent_work_dir_path,
             )
-
-            self.prepare_appdirectory(parent_work_dir_path, step_name, self.GradleBuild_badversion)
 
             # run step
             actual_step_result = step_implementer._run_step()
@@ -181,8 +183,19 @@ class TestStepImplementerGradleDeploy__run_step(
             
             parent_work_dir_path = os.path.join(test_dir.path, 'working')
 
+            step_name = 'deploy'
+
+            build_file = 'build.gradle'
+            
+            app_dir = self.setup_testdirectories(test_dir.path)
+
+            build_fn = os.path.basename('app/build.gradle')
+            
+            self.prepare_appdirectory(app_dir, build_fn, self.GradleBuild_testpublish)
+
             step_config = {
-                'build-file': 'app/build.gradle',
+                'build-file': os.path.join(app_dir, build_fn),
+                'gradle-tasks': ['artifactoryPublish'],
                 'gradle-additional-arguments': [],
                 'gradle-console-plain': True
                 }
@@ -195,60 +208,41 @@ class TestStepImplementerGradleDeploy__run_step(
             # run step
             actual_step_result = step_implementer._run_step()
 
+            print('Actual: ')
+            print(actual_step_result)
+
+            output_fn = os.path.join(parent_work_dir_path, 'deploy/gradle_deploy_output.txt')
+            
             # create expected step result
             expected_step_result = StepResult(
-                step_name='deploy',
+                step_name=step_name,
                 sub_step_name='GradleDeploy',
                 sub_step_implementer_name='GradleDeploy'
-            )
-            expected_step_result.add_artifact(
-                description="Standard out and standard error from running gradle to update version.",
-                name='gradle-update-version-output',
-                value=str(parent_work_dir_path) + '/deploy/Gradle_versions_set_output.txt'
             )
             expected_step_result.add_artifact(
                 description="Standard out and standard error from running gradle to " \
                     "push artifacts to repository.",
                 name='gradle-push-artifacts-output',
-                value=str(parent_work_dir_path) + '/Gradle-deploy_output.txt'
+                value=output_fn
             )
 
-                # with open('/tmp/gradle.txt', 'w') as outf:
-
-                # outf.write('Actual: ' + '\n')
+            
+            if os.path.exists(output_fn):
+                print('Gradle Output: ')
+                with open(output_fn, 'r') as inf:
+                    print(inf.read())
+                    inf.close()
                     
-                # outf.write(str(actual_step_result))
-                # outf.write('\n')
-                
-                # outf.write('Expected: ' + '\n')
+            print('Expected: ')
+            print(expected_step_result)            
 
-                # outf.write(str(expected_step_result))
-                
-                # outf.close()
-
-            return None
+            self.assertEqual(actual_step_result.success, expected_step_result.success)
+            
+            self.assertEqual(actual_step_result.artifacts, expected_step_result.artifacts)
             
             # verify step result
             self.assertEqual(
                 actual_step_result,
                 expected_step_result
-            )
-
-            mock_write_working_file.assert_called()
-            mock_run_gradle.assert_called_with(
-                Gradle_output_file_path='/mock/Gradle_versions_set_output.txt',
-                settings_file='/fake/settings.xml',
-                pom_file=pom_file,
-                phases_and_goals=['versions:set'],
-                additional_arguments=[
-                    f'-DnewVersion={version}'
-                ]
-            )
-            mock_run_gradle_step.assert_called_with(
-                Gradle_output_file_path='/mock/Gradle_deploy_output.txt',
-                step_implementer_additional_arguments=[
-                    '-DaltDeploymentRepository=' \
-                    f'{gradle_push_artifact_repo_id}::default::{gradle_push_artifact_repo_url}'
-                ]
             )
 

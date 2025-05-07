@@ -130,7 +130,6 @@ def run_gradle( #pylint: disable=too-many-arguments, too-many-locals
     if not isinstance(tasks, list):
         tasks = [tasks]
 
-
     # create console plain argument
     console_plain_argument = None
     if console_plain:
@@ -216,6 +215,11 @@ def get_plugin_configuration_absolute_path_values(
     """
 
     absolute_path_config_values = []
+
+    if plugin_name is None:
+        raise RuntimeError(
+            f"Expected gradle plugin ({plugin_name}) not found."
+        )
 
     config_values = get_plugin_configuration_values(
         plugin_name=plugin_name,

@@ -49,6 +49,9 @@ class GradleGeneric(StepImplementer):
         environment=None,
         gradle_tasks=None
     ):
+
+        print('Setting gradle tasks.')
+
         self.__gradle_tasks = gradle_tasks
 
         super().__init__(
@@ -163,6 +166,8 @@ class GradleGeneric(StepImplementer):
         else:
             additional_arguments = self.get_value('gradle-additional-arguments')
 
+        print('Gradle Tasks: ' + str(tasks))
+            
         run_gradle(
             gradle_output_file_path=gradle_output_file_path,
             tasks=tasks,
